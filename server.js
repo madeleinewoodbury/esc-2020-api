@@ -17,6 +17,11 @@ app.use(express.json());
 
 app.get('/', (req, res) => res.send('Api Running...'));
 
+// Define routes
+app.use('/api/users', require('./routes/users'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/countries', require('./routes/countries'));
+
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));

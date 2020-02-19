@@ -25,14 +25,14 @@ const CountrySchema = new Schema({
   },
   victories: {
     type: [String],
-    default: 'None'
+    default: ['None']
   },
   hosts: {
     type: [String],
-    default: 'Never hosted'
+    default: ['Never hosted']
   },
   bio: {
-    type: [String]
+    type: String
   }
 });
 
