@@ -106,4 +106,34 @@ router.get('/votes', auth, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/users
+// @desc    Delete user
+// @acess   Private
+router.delete('/', auth, async (req, res) => {
+  try {
+    const participants = await Participant.find({ 'votes.user': req.user.id });
+
+    // Remove user's votes if any
+    if (participants.length > 0) {
+      participants.forEach(async participant => {
+        let vote = participant.votes.find(
+          vote => vote.user.toString() === req.user.id
+        );
+        let index = participant.votes.indexOf(vote);
+
+        participant.votes.splice(index, 1);
+        await participant.save();
+      });
+    }
+
+    // Remove user
+    await User.findOneAndRemove({ _id: req.user.id });
+
+    res.json({ msg: 'User deleted' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
