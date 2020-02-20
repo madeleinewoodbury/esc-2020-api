@@ -3,24 +3,32 @@ const Schema = mongoose.Schema;
 
 const ParticipantSchema = new Schema({
   country: {
-    type: Schema.Types.ObjectId,
-    ref: 'country'
+    type: String
+  },
+  emoji: {
+    type: String
+  },
+  flag: {
+    type: String
   },
   artist: {
     type: String,
-    default: 'To be announced'
+    required: true
   },
   song: {
     type: String,
-    default: 'To be announced'
+    required: true
   },
   image: {
     type: String,
     default:
       'https://eurovision.tv/images/placeholder.jpg?id=cb2836e4db74575ca788'
   },
+  intro: {
+    type: String
+  },
   bio: {
-    type: [String]
+    type: String
   },
   writtenBy: {
     type: String
@@ -28,17 +36,13 @@ const ParticipantSchema = new Schema({
   composedBy: {
     type: String
   },
-  firstSemi: {
-    type: Boolean,
-    required: true
-  },
-  secondSemi: {
-    type: Boolean,
+  semifinal: {
+    type: String,
     required: true
   },
   final: {
     type: Boolean,
-    required: true
+    default: false
   },
   youtube: {
     type: String

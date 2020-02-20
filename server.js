@@ -21,6 +21,7 @@ app.get('/', (req, res) => res.send('Api Running...'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/countries', require('./routes/countries'));
+app.use('/api/participants', require('./routes/participants'));
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
