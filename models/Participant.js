@@ -46,7 +46,18 @@ const ParticipantSchema = new Schema({
   },
   youtube: {
     type: String
-  }
+  },
+  votes: [
+    {
+      user: {
+        type: Schema.Types.ObjectId,
+        ref: 'users'
+      },
+      vote: {
+        type: Number
+      }
+    }
+  ]
 });
 
 module.exports = Participant = mongoose.model('participant', ParticipantSchema);

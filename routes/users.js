@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
+const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Participant = require('../models/Participant');
 
 // @route   POST /api/users
 // @desc    Register a new user
@@ -67,5 +69,41 @@ router.post(
     }
   }
 );
+
+// @route    GET api/users/votes
+// @desc     Get the users vote
+// @access   Private
+router.get('/votes', auth, async (req, res) => {
+  try {
+    const participants = await Participant.find({ 'votes.user': req.user.id });
+
+    if (participants.length < 1) {
+      return res
+        .status(400)
+        .json({ errors: [{ msg: 'No participants found' }] });
+    }
+
+    let votes = [];
+
+    // Find the users votes
+    participants.forEach(participant => {
+      let country = participant.country;
+      let userVote = participant.votes.find(
+        vote => vote.user.toString() === req.user.id
+      );
+
+      let vote = {
+        country,
+        vote: userVote.vote
+      };
+      votes.unshift(vote);
+    });
+
+    res.json(votes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 module.exports = router;

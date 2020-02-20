@@ -220,4 +220,57 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// @route    POST api/participants/vote/:id
+// @desc     Vote on a participant
+// @access   Private
+router.post(
+  '/vote/:id',
+  [
+    auth,
+    [
+      check('vote', 'Vote is required')
+        .not()
+        .isEmpty()
+    ]
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const participant = await Participant.findById(req.params.id);
+
+      // Check if user has voted on participant before
+      let vote = await participant.votes.find(
+        vote => vote.user.toString() === req.user.id
+      );
+
+      // Update the new vote
+      if (vote) {
+        vote.vote = req.body.vote;
+        await participant.save();
+
+        return res.json(participant);
+      }
+
+      // Create a new vote for the user
+      const newVote = {
+        user: req.user.id,
+        vote: req.body.vote
+      };
+
+      participant.votes.unshift(newVote);
+
+      await participant.save();
+
+      res.json(participant);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  }
+);
+
 module.exports = router;
