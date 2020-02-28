@@ -3,7 +3,12 @@ const Schema = mongoose.Schema;
 
 const ParticipantSchema = new Schema({
   country: {
-    type: String
+    type: String,
+    required: true
+  },
+  countryId: {
+    type: String,
+    required: true
   },
   emoji: {
     type: String
@@ -31,10 +36,12 @@ const ParticipantSchema = new Schema({
     type: String
   },
   writtenBy: {
-    type: String
+    type: String,
+    default: 'Unknown'
   },
   composedBy: {
-    type: String
+    type: String,
+    default: 'Unknown'
   },
   semifinal: {
     type: String,
@@ -46,6 +53,13 @@ const ParticipantSchema = new Schema({
   },
   youtube: {
     type: String
+  },
+  points: {
+    type: Number,
+    default: 0
+  },
+  year: {
+    type: Number
   },
   votes: [
     {

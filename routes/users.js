@@ -70,42 +70,6 @@ router.post(
   }
 );
 
-// @route    GET api/users/votes
-// @desc     Get the users vote
-// @access   Private
-router.get('/votes', auth, async (req, res) => {
-  try {
-    const participants = await Participant.find({ 'votes.user': req.user.id });
-
-    if (participants.length < 1) {
-      return res
-        .status(400)
-        .json({ errors: [{ msg: 'No participants found' }] });
-    }
-
-    let votes = [];
-
-    // Find the users votes
-    participants.forEach(participant => {
-      let country = participant.country;
-      let userVote = participant.votes.find(
-        vote => vote.user.toString() === req.user.id
-      );
-
-      let vote = {
-        country,
-        vote: userVote.vote
-      };
-      votes.unshift(vote);
-    });
-
-    res.json(votes);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
 // @route   DELETE /api/users
 // @desc    Delete user
 // @acess   Private

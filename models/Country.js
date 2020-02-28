@@ -15,6 +15,11 @@ const CountrySchema = new Schema({
     type: String,
     required: true
   },
+  image: {
+    type: String,
+    default:
+      'https://eurovision.tv/images/placeholder.jpg?id=cb2836e4db74575ca788'
+  },
   participations: {
     type: Number,
     required: true
@@ -31,7 +36,13 @@ const CountrySchema = new Schema({
     type: [String],
     default: ['Never hosted']
   },
+  intro: {
+    type: String
+  },
   bio: {
+    type: String
+  },
+  youtube: {
     type: String
   }
 });

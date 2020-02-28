@@ -20,6 +20,17 @@ const UserSchema = new Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  votes: [
+    {
+      participant: {
+        type: Schema.Types.ObjectId,
+        ref: 'participants'
+      },
+      vote: {
+        type: Number
+      }
+    }
+  ],
   date: {
     type: Date,
     default: Date.now

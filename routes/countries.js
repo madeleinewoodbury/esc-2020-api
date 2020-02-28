@@ -58,6 +58,7 @@ router.post(
         name: req.body.name,
         emoji: req.body.emoji,
         flag: req.body.flag,
+        image: req.body.image && req.body.image,
         participations: req.body.participations,
         firstParticipation: req.body.firstParticipation,
         victories:
@@ -65,7 +66,9 @@ router.post(
           req.body.victories.split(',').map(item => item.trim()),
         hosts:
           req.body.hosts && req.body.hosts.split(',').map(item => item.trim()),
-        bio: req.body.bio && req.body.bio
+        intro: req.body.intro && req.body.intro,
+        bio: req.body.bio && req.body.bio,
+        youtube: req.body.youtube && req.body.youtube
       });
 
       country = await newCountry.save();
@@ -90,15 +93,15 @@ router.get('/', async (req, res) => {
         .json({ errors: [{ msg: 'No countries in database' }] });
     }
 
-    res.json({ count: countries.length, data: countries });
+    res.json(countries);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
 
-// @route   GET /api/countries/:id
-// @desc    Get single country
+// @route   GET /api/countries/:name
+// @desc    Get single id
 // @acess   Public
 router.get('/:id', async (req, res) => {
   try {
@@ -153,23 +156,29 @@ router.put(
       name,
       emoji,
       flag,
+      image,
       participations,
       firstParticipation,
       victories,
       hosts,
-      bio
+      intro,
+      bio,
+      youtube
     } = req.body;
     const countryFields = {};
     if (name) countryFields.name = name;
     if (emoji) countryFields.emoji = emoji;
     if (flag) countryFields.flag = flag;
+    if (image) countryFields.image = image;
     if (participations) countryFields.participations = participations;
     if (firstParticipation)
       countryFields.firstParticipation = firstParticipation;
     if (victories)
       countryFields.victories = victories.split(',').map(item => item.trim());
     if (hosts) countryFields.hosts = hosts.split(',').map(item => item.trim());
+    if (intro) countryFields.intro = intro;
     if (bio) countryFields.bio = bio;
+    if (youtube) countryFields.youtube = youtube;
 
     try {
       let country = await Country.findById(req.params.id);
@@ -214,7 +223,7 @@ router.delete('/:id', auth, async (req, res) => {
     // Check if user is authorized
     const user = await User.findById(req.user.id).select('-password');
     if (user.role !== 'admin') {
-      return res.status(400).json({ errors: [{ msg: 'User not authorized' }] });
+      return res.status(400).json({ msg: 'User not authorized' });
     }
 
     await country.remove();

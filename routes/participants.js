@@ -6,14 +6,17 @@ const Participant = require('../models/Participant');
 const Country = require('../models/Country');
 const User = require('../models/User');
 
-// @route   POST /api/participants/:countryId
+// @route   POST /api/participants
 // @desc    Create a participant
 // @acess   Private
 router.post(
-  '/:countryId',
+  '/',
   [
     auth,
     [
+      check('country', 'Country is required')
+        .not()
+        .isEmpty(),
       check('artist', 'Artist name is required')
         .not()
         .isEmpty(),
@@ -40,18 +43,18 @@ router.post(
           .json({ errors: [{ msg: 'User not authorized' }] });
       }
 
-      // Check if country exist
-      const country = await Country.findById(req.params.countryId);
+      const country = await Country.findOne({
+        name: req.body.country
+      });
 
       if (!country) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: 'Country does not exist in database.' }] });
+        return res.status(400).json({ msg: 'Country not found' });
       }
 
       // Creat new instance of country
       const newParticipant = new Participant({
-        country: country.name,
+        country: req.body.country,
+        countryId: country._id,
         emoji: country.emoji,
         flag: country.flag,
         artist: req.body.artist,
@@ -63,7 +66,9 @@ router.post(
         composedBy: req.body.composedBy && req.body.composedBy,
         semifinal: req.body.semifinal,
         final: req.body.final && req.body.final,
-        youtube: req.body.youtube && req.body.youtube
+        youtube: req.body.youtube && req.body.youtube,
+        year: req.body.year && req.body.year,
+        points: req.body.points && req.body.points
       });
 
       const participant = await newParticipant.save();
@@ -122,6 +127,9 @@ router.put(
   [
     auth,
     [
+      check('country', 'Country is required')
+        .not()
+        .isEmpty(),
       check('artist', 'Artist name is required')
         .not()
         .isEmpty(),
@@ -139,6 +147,14 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const country = await Country.findOne({
+      name: req.body.country
+    });
+
+    if (!country) {
+      return res.status(400).json({ msg: 'Country not found' });
+    }
+
     const {
       artist,
       song,
@@ -149,10 +165,15 @@ router.put(
       composedBy,
       semifinal,
       final,
-      youtube
+      youtube,
+      year,
+      points
     } = req.body;
 
     const participantFields = {};
+    participantFields.country = country.name;
+    participantFields.emoji = country.emoji;
+    participantFields.flag = country.flag;
     if (artist) participantFields.artist = artist;
     if (song) participantFields.song = song;
     if (image) participantFields.image = image;
@@ -163,6 +184,8 @@ router.put(
     if (semifinal) participantFields.semifinal = semifinal;
     if (final) participantFields.final = final;
     if (youtube) participantFields.youtube = youtube;
+    if (year) participantFields.year = year;
+    if (points) participantFields.points = points;
 
     try {
       let participant = await Participant.findById(req.params.id);
@@ -223,54 +246,44 @@ router.delete('/:id', auth, async (req, res) => {
 // @route    POST api/participants/vote/:id
 // @desc     Vote on a participant
 // @access   Private
-router.post(
-  '/vote/:id',
-  [
-    auth,
-    [
-      check('vote', 'Vote is required')
-        .not()
-        .isEmpty()
-    ]
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const participant = await Participant.findById(req.params.id);
-
-      // Check if user has voted on participant before
-      let vote = await participant.votes.find(
-        vote => vote.user.toString() === req.user.id
-      );
-
-      // Update the new vote
-      if (vote) {
-        vote.vote = req.body.vote;
-        await participant.save();
-
-        return res.json(participant);
-      }
-
-      // Create a new vote for the user
-      const newVote = {
-        user: req.user.id,
-        vote: req.body.vote
-      };
-
-      participant.votes.unshift(newVote);
-
-      await participant.save();
-
-      res.json(participant);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
-    }
+router.post('/vote/:id/:vote', [auth], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
-);
+
+  try {
+    // const participant = await Participant.findById(req.params.id);
+    const user = await User.findById(req.user.id);
+
+    // Check if user has voted on participant before
+    let vote = await user.votes.find(
+      vote => vote.participant.toString() === req.params.id
+    );
+
+    // Update the new vote
+    if (vote) {
+      vote.vote = req.params.vote;
+      await user.save();
+
+      return res.json(user);
+    }
+
+    // Create a new vote for the user
+    const newVote = {
+      participant: req.params.id,
+      vote: req.params.vote
+    };
+
+    user.votes.unshift(newVote);
+
+    await user.save();
+
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 module.exports = router;
