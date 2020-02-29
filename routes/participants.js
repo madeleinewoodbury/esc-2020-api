@@ -253,33 +253,80 @@ router.post('/vote/:id/:vote', [auth], async (req, res) => {
   }
 
   try {
-    // const participant = await Participant.findById(req.params.id);
+    const participant = await Participant.findById(req.params.id);
     const user = await User.findById(req.user.id);
 
     // Check if user has voted on participant before
-    let vote = await user.votes.find(
+    let userVote = await user.votes.find(
       vote => vote.participant.toString() === req.params.id
     );
 
     // Update the new vote
-    if (vote) {
-      vote.vote = req.params.vote;
+    if (userVote) {
+      userVote.vote = req.params.vote;
       await user.save();
 
-      return res.json(user);
+      let participantVote = await participant.votes.find(
+        vote => vote.user.toString() === req.user.id
+      );
+
+      participantVote.vote = req.params.vote;
+      await participant.save();
+
+      return res.json(participant);
     }
 
     // Create a new vote for the user
-    const newVote = {
-      participant: req.params.id,
+    const newUserVote = {
+      participant: participant._id,
       vote: req.params.vote
     };
 
-    user.votes.unshift(newVote);
+    // Create a new vote for the participant
+    const newParticipantVote = {
+      user: req.user.id,
+      vote: req.params.vote
+    };
+
+    user.votes.unshift(newUserVote);
+    participant.votes.unshift(newParticipantVote);
 
     await user.save();
+    await participant.save();
 
-    res.json(user);
+    res.json(participant);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route    GET api/participants/:id/votes
+// @desc     Get participants total votes
+// @access   Private
+router.get('/:id/votes', [auth], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const participant = await Participant.findById(req.params.id);
+
+    if (!participant) {
+      res.status(400).json({ msg: 'Participant not found' });
+    }
+
+    const votes = participant.votes.map(vote => vote);
+
+    if (votes.length < 1) {
+      res.status(400).json({ msg: 'No votes found' });
+    }
+
+    let totalVotes = 0;
+    votes.map(vote => (totalVotes += vote.vote));
+
+    res.json({ total: totalVotes, votes });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

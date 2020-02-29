@@ -100,4 +100,29 @@ router.delete('/', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/users/votes
+// @desc    Get users votes
+// @acess   Private
+router.get('/votes', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(400).json({ msg: 'No user found' });
+    }
+
+    const votes = user.votes.map(vote => vote);
+
+    if (votes.length < 1) {
+      return res.status(400).json({ msg: 'No votes found' });
+    }
+
+    votes.sort(votes.vote);
+
+    res.json(votes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 module.exports = router;
