@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const { check, validationResult } = require('express-validator');
 const Competition = require('../models/Competition');
 const User = require('../models/User');
+const Country = require('../models/Country');
 
 // @route   POST /api/competitions
 // @desc    Create a competition
@@ -17,6 +18,9 @@ router.post(
         .not()
         .isEmpty(),
       check('host', 'Host is required')
+        .not()
+        .isEmpty(),
+      check('country', 'Country is required')
         .not()
         .isEmpty(),
       check('logo', 'Logo is required')
@@ -50,10 +54,23 @@ router.post(
           .json({ errors: [{ msg: 'Competition already exist in database' }] });
       }
 
+      const country = await Country.findOne({
+        name: req.body.country
+      });
+
+      console.log(country);
+
+      if (!country) {
+        return res.status(400).json({ msg: 'Country not found' });
+      }
+
       // Creat new instance of competition
       const newCompetition = new Competition({
         year: req.body.year,
         host: req.body.host,
+        country: req.body.country,
+        countryId: country._id,
+        emoji: country.emoji,
         logo: req.body.logo,
         image: req.body.image && req.body.image,
         winner: req.body.winner,
@@ -76,7 +93,7 @@ router.post(
 // @acess   Public
 router.get('/', async (req, res) => {
   try {
-    const competitions = await Competition.find().sort({ year: 1 });
+    const competitions = await Competition.find().sort({ year: -1 });
 
     if (!competitions) {
       return res
@@ -128,6 +145,9 @@ router.put(
       check('host', 'Host is required')
         .not()
         .isEmpty(),
+      check('country', 'Country is required')
+        .not()
+        .isEmpty(),
       check('logo', 'Logo is required')
         .not()
         .isEmpty(),
@@ -142,8 +162,18 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const country = await Country.findOne({
+      name: req.body.country
+    });
+
+    if (!country) {
+      return res.status(400).json({ msg: 'Country not found' });
+    }
+
     const { year, host, logo, image, winner, intro, bio, youtube } = req.body;
     const competitionFields = {};
+    competitionFields.country = country.name;
+    competitionFields.emoji = country.emoji;
     if (year) competitionFields.year = year;
     if (host) competitionFields.host = host;
     if (logo) competitionFields.logo = logo;

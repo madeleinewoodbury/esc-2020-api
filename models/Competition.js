@@ -10,6 +10,18 @@ const CompetitionSchema = new Schema({
     type: String,
     required: true
   },
+  country: {
+    type: String,
+    required: true
+  },
+  countryId: {
+    type: String,
+    required: true
+  },
+  emoji: {
+    type: String,
+    required: true
+  },
   logo: {
     type: String,
     required: true
