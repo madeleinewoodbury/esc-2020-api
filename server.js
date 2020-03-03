@@ -22,6 +22,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/countries', require('./routes/countries'));
 app.use('/api/participants', require('./routes/participants'));
+app.use('/api/competitions', require('./routes/competitions'));
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {

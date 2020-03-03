@@ -243,7 +243,7 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// @route    POST api/participants/vote/:id
+// @route    POST api/participants/vote/:id/:vote
 // @desc     Vote on a participant
 // @access   Private
 router.post('/vote/:id/:vote', [auth], async (req, res) => {
