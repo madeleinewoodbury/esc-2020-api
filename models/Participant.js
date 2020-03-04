@@ -25,9 +25,7 @@ const ParticipantSchema = new Schema({
     required: true
   },
   image: {
-    type: String,
-    default:
-      'https://eurovision.tv/images/placeholder.jpg?id=cb2836e4db74575ca788'
+    type: String
   },
   intro: {
     type: String
@@ -36,12 +34,10 @@ const ParticipantSchema = new Schema({
     type: String
   },
   writtenBy: {
-    type: String,
-    default: 'Unknown'
+    type: String
   },
   composedBy: {
-    type: String,
-    default: 'Unknown'
+    type: String
   },
   semifinal: {
     type: String,

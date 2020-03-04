@@ -58,8 +58,6 @@ router.post(
         name: req.body.country
       });
 
-      console.log(country);
-
       if (!country) {
         return res.status(400).json({ msg: 'Country not found' });
       }

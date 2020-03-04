@@ -59,11 +59,13 @@ router.post(
         flag: country.flag,
         artist: req.body.artist,
         song: req.body.song,
-        image: req.body.image && req.body.image,
+        image: req.body.image
+          ? req.body.image
+          : 'https://eurovision.tv/images/placeholder.jpg?id=cb2836e4db74575ca788',
         intro: req.body.intro && req.body.intro,
         bio: req.body.bio && req.body.bio,
-        writtenBy: req.body.writtenBy && req.body.writtenBy,
-        composedBy: req.body.composedBy && req.body.composedBy,
+        writtenBy: req.body.writtenBy ? req.body.writtenBy : 'Unknown',
+        composedBy: req.body.composedBy ? req.body.composedBy : 'Unknown',
         semifinal: req.body.semifinal,
         final: req.body.final && req.body.final,
         youtube: req.body.youtube && req.body.youtube,
@@ -264,6 +266,7 @@ router.post('/vote/:id/:vote', [auth], async (req, res) => {
     // Update the new vote
     if (userVote) {
       userVote.vote = req.params.vote;
+      user.votes.sort((a, b) => (a.vote < b.vote ? 1 : -1));
       await user.save();
 
       let participantVote = await participant.votes.find(
@@ -291,6 +294,7 @@ router.post('/vote/:id/:vote', [auth], async (req, res) => {
     user.votes.unshift(newUserVote);
     participant.votes.unshift(newParticipantVote);
 
+    user.votes.sort((a, b) => (a.vote < b.vote ? 1 : -1));
     await user.save();
     await participant.save();
 
@@ -327,6 +331,23 @@ router.get('/:id/votes', [auth], async (req, res) => {
     votes.map(vote => (totalVotes += vote.vote));
 
     res.json({ total: totalVotes, votes });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route    GET api/participants/year/:id
+// @desc     Get participants by year
+// @access   Public
+router.get('/year/:year', async (req, res) => {
+  try {
+    const participants = await Participant.find({ year: req.params.year });
+    if (!participants) {
+      res.status(400).json({ msg: 'No participants not found' });
+    }
+
+    res.json(participants);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
